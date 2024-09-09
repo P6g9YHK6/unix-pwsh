@@ -18,11 +18,21 @@ jobs:
 
       - name: Prep - Install and Run Script
         run: |
-          # Install the script using Install-Script cmdlet
-          Install-Script -Name winget-install -Force
-          
-          # Run the installed script
-          winget-install
+          try {
+            # Install the script using Install-Script cmdlet
+            Install-Script -Name winget-install -Force
+            Write-Host "Script 'winget-install' installed successfully."
+
+            # Run the installed script
+            winget-install
+            Write-Host "Script 'winget-install' ran successfully."
+          } catch {
+            Write-Error "Failed to install or run 'winget-install'."
+            Write-Error "Exception Message: $($_.Exception.Message)"
+            Write-Error "Exception Type: $($_.Exception.GetType().FullName)"
+            Write-Error "Stack Trace: $($_.Exception.StackTrace)"
+            exit 1
+          }
         shell: pwsh
 
       - name: Initial PowerShell Profile Installation
@@ -32,19 +42,30 @@ jobs:
             iex (iwr "https://raw.githubusercontent.com/P6g9YHK6/unix-pwsh/main/Microsoft.PowerShell_profile.ps1").Content
             Write-Host "Profile installation succeeded."
           } catch {
-            Write-Error "Profile installation failed: $($_.Exception.Message)"
+            Write-Error "Profile installation failed during initial attempt."
+            Write-Error "Exception Message: $($_.Exception.Message)"
+            Write-Error "Exception Type: $($_.Exception.GetType().FullName)"
+            Write-Error "Stack Trace: $($_.Exception.StackTrace)"
             exit 1
           }
         shell: pwsh
 
       - name: Delete unix-pwsh directory if exists
         run: |
-          $profileDir = Join-Path -Path $env:USERPROFILE -ChildPath "unix-pwsh"
-          if (Test-Path $profileDir) {
-            Remove-Item -Recurse -Force $profileDir
-            Write-Host "Deleted unix-pwsh directory."
-          } else {
-            Write-Host "No unix-pwsh directory found."
+          try {
+            $profileDir = Join-Path -Path $env:USERPROFILE -ChildPath "unix-pwsh"
+            if (Test-Path $profileDir) {
+              Remove-Item -Recurse -Force $profileDir
+              Write-Host "Deleted unix-pwsh directory."
+            } else {
+              Write-Host "No unix-pwsh directory found to delete."
+            }
+          } catch {
+            Write-Error "Failed to delete 'unix-pwsh' directory."
+            Write-Error "Exception Message: $($_.Exception.Message)"
+            Write-Error "Exception Type: $($_.Exception.GetType().FullName)"
+            Write-Error "Stack Trace: $($_.Exception.StackTrace)"
+            exit 1
           }
         shell: pwsh
 
@@ -54,67 +75,86 @@ jobs:
             iex (iwr "https://raw.githubusercontent.com/P6g9YHK6/unix-pwsh/main/Microsoft.PowerShell_profile.ps1").Content
             Write-Host "Second profile installation succeeded."
           } catch {
-            Write-Error "Second profile installation failed: $($_.Exception.Message)"
+            Write-Error "Profile installation failed during the second attempt."
+            Write-Error "Exception Message: $($_.Exception.Message)"
+            Write-Error "Exception Type: $($_.Exception.GetType().FullName)"
+            Write-Error "Stack Trace: $($_.Exception.StackTrace)"
             exit 1
           }
         shell: pwsh
 
       - name: Test PowerShell Profile Modules and FiraCode Nerd Font
         run: |
-          # Check if each module is loaded
-          $modules = @('sudo', 'oh-my-posh', 'powershell-yaml', 'Terminal-Icons', 'PoshFunctions')
-          foreach ($module in $modules) {
-            if (Get-Module -ListAvailable -Name $module) {
-              Write-Host "$module is installed."
+          try {
+            # Check if each module is loaded
+            $modules = @('sudo', 'oh-my-posh', 'powershell-yaml', 'Terminal-Icons', 'PoshFunctions')
+            foreach ($module in $modules) {
+              if (Get-Module -ListAvailable -Name $module) {
+                Write-Host "$module is installed."
+              } else {
+                Write-Error "$module is NOT installed! Please ensure the module is correctly installed and available."
+                exit 1
+              }
+            }
+
+            # Check if FiraCode Nerd Font is installed
+            $fontCheck = Get-ChildItem -Path "$env:SystemRoot\Fonts" -Recurse | Where-Object { $_.Name -match "FiraCode.*Nerd.*\.ttf" }
+            if ($fontCheck) {
+              Write-Host "FiraCode Nerd Font is installed."
             } else {
-              Write-Error "$module is NOT installed!"
+              Write-Error "FiraCode Nerd Font is NOT installed! Please install the font and verify its presence in the system fonts directory."
               exit 1
             }
-          }
-
-          # Check if FiraCode Nerd Font is installed
-          $fontCheck = Get-ChildItem -Path "$env:SystemRoot\Fonts" -Recurse | Where-Object { $_.Name -match "FiraCode.*Nerd.*\.ttf" }
-          if ($fontCheck) {
-            Write-Host "FiraCode Nerd Font is installed."
-          } else {
-            Write-Error "FiraCode Nerd Font is NOT installed!"
+          } catch {
+            Write-Error "An error occurred during the module or font checks."
+            Write-Error "Exception Message: $($_.Exception.Message)"
+            Write-Error "Exception Type: $($_.Exception.GetType().FullName)"
+            Write-Error "Stack Trace: $($_.Exception.StackTrace)"
             exit 1
           }
         shell: pwsh
 
       - name: Check PowerShell Profile Auto-Load
         run: |
-          # Define the profile paths
-          $profilePaths = @(
-              $PROFILE.AllUsersCurrentHost,
-              $PROFILE.AllUsersAllHosts,
-              $PROFILE.CurrentUserCurrentHost,
-              $PROFILE.CurrentUserAllHosts
-          )
+          try {
+            # Define the profile paths
+            $profilePaths = @(
+                $PROFILE.AllUsersCurrentHost,
+                $PROFILE.AllUsersAllHosts,
+                $PROFILE.CurrentUserCurrentHost,
+                $PROFILE.CurrentUserAllHosts
+            )
 
-          # Define the search string
-          $searchString = "# END unix-pwsh"
+            # Define the search string
+            $searchString = "# END unix-pwsh"
 
-          # Flag to track if the string is found
-          $found = $false
+            # Flag to track if the string is found
+            $found = $false
 
-          # Loop through each profile path
-          foreach ($profilePath in $profilePaths) {
-              if (Test-Path $profilePath) {
-                  $fileContent = Get-Content $profilePath
-                  if ($fileContent -contains $searchString) {
-                      $found = $true
-                      break
-                  }
-              }
-          }
+            # Loop through each profile path
+            foreach ($profilePath in $profilePaths) {
+                if (Test-Path $profilePath) {
+                    $fileContent = Get-Content $profilePath
+                    if ($fileContent -contains $searchString) {
+                        $found = $true
+                        break
+                    }
+                }
+            }
 
-          # Exit with status code 1 if the string is not found in any file
-          if (-not $found) {
-              Write-Error "The string '$searchString' was NOT found in any profile file!"
+            # Exit with status code 1 if the string is not found in any file
+            if (-not $found) {
+              Write-Error "The string '$searchString' was NOT found in any profile file! Ensure the profile script is correctly added to auto-load in your PowerShell profiles."
               exit 1
-          }
+            }
 
-          # Optional: Output a message if the string is found in at least one file
-          Write-Output "The string '$searchString' was found in at least one profile file."
+            # Optional: Output a message if the string is found in at least one file
+            Write-Output "The string '$searchString' was found in at least one profile file."
+          } catch {
+            Write-Error "An error occurred while checking the profile auto-load setup."
+            Write-Error "Exception Message: $($_.Exception.Message)"
+            Write-Error "Exception Type: $($_.Exception.GetType().FullName)"
+            Write-Error "Stack Trace: $($_.Exception.StackTrace)"
+            exit 1
+          }
         shell: pwsh
