@@ -3,41 +3,58 @@ name: Test PowerShell Profile
 on:
   push:
     branches:
-      - main
+      - '**'  # Trigger on every push to any branch
   pull_request:
     branches:
-      - main
+      - '**'  # Trigger on pull requests to any branch
 
 jobs:
   test-pwsh-profile:
     runs-on: windows-latest
-    timeout-minutes: 30
+    timeout-minutes: 30  # Set a higher timeout for long operations
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-        
+
+      # Test network connectivity before proceeding
+      - name: Test Network Connectivity to GitHub
+        run: |
+          try {
+            $response = iwr "https://github.com" -TimeoutSec 10
+            Write-Host "Network connectivity is OK."
+          } catch {
+            Write-Error "Network connectivity issue: $($_.Exception.Message)"
+            exit 1
+          }
+        shell: pwsh
+
       - name: Initial PowerShell Profile Installation
         run: |
           $retryCount = 0
           $maxRetries = 3
           while ($retryCount -lt $maxRetries) {
             try {
-              iex (iwr "https://raw.githubusercontent.com/CrazyWolf13/unix-pwsh/main/Microsoft.PowerShell_profile.ps1").Content
+              if ($env:GITHUB_ACTIONS) {
+                Write-Host "Running in GitHub Actions environment. Skipping unnecessary initializations..."
+              } else {
+                Write-Host "Starting profile installation..."
+                $response = iwr "https://raw.githubusercontent.com/CrazyWolf13/unix-pwsh/main/Microsoft.PowerShell_profile.ps1" -TimeoutSec 15 -ErrorAction Stop
+                iex $response.Content
+              }
               Write-Host "Profile installation succeeded."
               break
             } catch {
               Write-Warning "Profile installation failed. Retrying... ($($retryCount + 1)/$maxRetries)"
               $retryCount++
               if ($retryCount -eq $maxRetries) {
-                Write-Error "Profile installation failed after $maxRetries attempts."
+                Write-Error "Profile installation failed after $maxRetries attempts. Error: $($_.Exception.Message)"
                 exit 1
               }
               Start-Sleep -Seconds 5  # Wait 5 seconds before retrying
             }
           }
         shell: pwsh
-
 
       - name: Delete unix-pwsh directory if exists
         run: |
@@ -52,12 +69,24 @@ jobs:
 
       - name: Reattempt PowerShell Profile Installation
         run: |
-          try {
-            iex (iwr "https://raw.githubusercontent.com/CrazyWolf13/unix-pwsh/main/Microsoft.PowerShell_profile.ps1").Content
-            Write-Host "Second profile installation succeeded."
-          } catch {
-            Write-Error "Second profile installation failed: $($_.Exception.Message)"
-            exit 1
+          $retryCount = 0
+          $maxRetries = 3
+          while ($retryCount -lt $maxRetries) {
+            try {
+              Write-Host "Reattempting profile installation..."
+              $response = iwr "https://raw.githubusercontent.com/CrazyWolf13/unix-pwsh/main/Microsoft.PowerShell_profile.ps1" -TimeoutSec 15 -ErrorAction Stop
+              iex $response.Content
+              Write-Host "Profile reinstallation succeeded."
+              break
+            } catch {
+              Write-Warning "Profile reinstallation failed. Retrying... ($($retryCount + 1)/$maxRetries)"
+              $retryCount++
+              if ($retryCount -eq $maxRetries) {
+                Write-Error "Profile reinstallation failed after $maxRetries attempts. Error: $($_.Exception.Message)"
+                exit 1
+              }
+              Start-Sleep -Seconds 5  # Wait 5 seconds before retrying
+            }
           }
         shell: pwsh
 
