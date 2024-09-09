@@ -11,10 +11,10 @@ $OhMyPoshConfig = "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/m
 try {
 $response = iwr "https://github.com" -TimeoutSec 10
 Write-Host "Network connectivity is OK."
-$canConnectToGitHub = $true
+$global:canConnectToGitHub = $true
 } catch {
 Write-Error "Network connectivity issue: $($_.Exception.Message)"
-$canConnectToGitHub = $false
+$global:canConnectToGitHub = $false
 }
 
 # Define vars.
