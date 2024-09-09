@@ -20,7 +20,7 @@ jobs:
         run: |
           try {
             # First attempt to install the profile
-            iex (iwr "https://raw.githubusercontent.com/P6g9YHK6/unix-pwsh/main/Microsoft.PowerShell_profile.ps1").Content
+            iex (iwr "https://raw.githubusercontent.com/CrazyWolf13/unix-pwsh/main/Microsoft.PowerShell_profile.ps1").Content
             Write-Host "Profile installation succeeded."
           } catch {
             Write-Error "Profile installation failed: $($_.Exception.Message)"
@@ -42,7 +42,7 @@ jobs:
       - name: Reattempt PowerShell Profile Installation
         run: |
           try {
-            iex (iwr "https://raw.githubusercontent.com/P6g9YHK6/unix-pwsh/main/Microsoft.PowerShell_profile.ps1").Content
+            iex (iwr "https://raw.githubusercontent.com/CrazyWolf13/unix-pwsh/main/Microsoft.PowerShell_profile.ps1").Content
             Write-Host "Second profile installation succeeded."
           } catch {
             Write-Error "Second profile installation failed: $($_.Exception.Message)"
@@ -71,4 +71,41 @@ jobs:
             Write-Error "FiraCode Nerd Font is NOT installed!"
             exit 1
           }
+        shell: pwsh
+
+      - name: Check PowerShell Profile Auto-Load
+        run: |
+          # Define the profile paths
+          $profilePaths = @(
+              $PROFILE.AllUsersCurrentHost,
+              $PROFILE.AllUsersAllHosts,
+              $PROFILE.CurrentUserCurrentHost,
+              $PROFILE.CurrentUserAllHosts
+          )
+
+          # Define the search string
+          $searchString = "# END unix-pwsh"
+
+          # Flag to track if the string is found
+          $found = $false
+
+          # Loop through each profile path
+          foreach ($profilePath in $profilePaths) {
+              if (Test-Path $profilePath) {
+                  $fileContent = Get-Content $profilePath
+                  if ($fileContent -contains $searchString) {
+                      $found = $true
+                      break
+                  }
+              }
+          }
+
+          # Exit with status code 1 if the string is not found in any file
+          if (-not $found) {
+              Write-Error "The string '$searchString' was NOT found in any profile file!"
+              exit 1
+          }
+
+          # Optional: Output a message if the string is found in at least one file
+          Write-Output "The string '$searchString' was found in at least one profile file."
         shell: pwsh
