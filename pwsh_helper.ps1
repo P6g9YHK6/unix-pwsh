@@ -97,8 +97,8 @@ function Test-ohmyposh {
         Set-ConfigValue -Key "ohmyposh_installed" -Value "True"
     } else {
         Write-Host "❌ OhMyPosh is not installed." -ForegroundColor Red
-        $installOhMyPosh = Read-Host "Do you want to install Oh-My-Posh? (Y/N)"
-        if ($installOhMyPosh -eq 'Y' -or $installOhMyPosh -eq 'y') {
+        
+        if ($yesMan -or (Read-Host "Do you want to install Oh-My-Posh? (Y/N)") -match '^[Yy]$') {
             winget install JanDeDobbeleer.OhMyPosh --accept-package-agreements --accept-source-agreements
         } else {
             Write-Host "❌ Oh-My-Posh installation skipped." -ForegroundColor Yellow
