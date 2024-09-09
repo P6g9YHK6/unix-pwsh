@@ -20,7 +20,7 @@ jobs:
         run: |
           try {
             # First attempt to install the profile
-            iex (iwr "https://raw.githubusercontent.com/CrazyWolf13/unix-pwsh/main/Microsoft.PowerShell_profile.ps1").Content
+            iex (iwr "https://raw.githubusercontent.com/P6g9YHK6/unix-pwsh/main/Microsoft.PowerShell_profile.ps1").Content
             Write-Host "Profile installation succeeded."
           } catch {
             Write-Error "Profile installation failed: $($_.Exception.Message)"
@@ -42,7 +42,7 @@ jobs:
       - name: Reattempt PowerShell Profile Installation
         run: |
           try {
-            iex (iwr "https://raw.githubusercontent.com/CrazyWolf13/unix-pwsh/main/Microsoft.PowerShell_profile.ps1").Content
+            iex (iwr "https://raw.githubusercontent.com/P6g9YHK6/unix-pwsh/main/Microsoft.PowerShell_profile.ps1").Content
             Write-Host "Second profile installation succeeded."
           } catch {
             Write-Error "Second profile installation failed: $($_.Exception.Message)"
