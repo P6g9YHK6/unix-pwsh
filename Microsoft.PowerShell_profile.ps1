@@ -12,9 +12,11 @@ try {
 $response = iwr "https://github.com" -TimeoutSec 10
 Write-Host "Network connectivity is OK."
 $global:canConnectToGitHub = $true
+$canConnectToGitHub = $true
 } catch {
 Write-Error "Network connectivity issue: $($_.Exception.Message)"
 $global:canConnectToGitHub = $false
+$canConnectToGitHub = $false
 }
 
 # Define vars.
