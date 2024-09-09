@@ -1,4 +1,5 @@
 Write-Host "✅ Helper script invoked successfully" -ForegroundColor Green
+exit 0
 
 # Tasks to be executed in the background.
 function BackgroundTasks {
