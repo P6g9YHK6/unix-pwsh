@@ -34,21 +34,28 @@ jobs:
             exit 1
           }
         shell: pwsh
-
       - name: Initial PowerShell Profile Installation
         run: |
-          try {
             # First attempt to install the profile
             iex (iwr "https://raw.githubusercontent.com/P6g9YHK6/unix-pwsh/main/Microsoft.PowerShell_profile.ps1").Content
             Write-Host "Profile installation succeeded."
-          } catch {
-            Write-Error "Profile installation failed during initial attempt."
-            Write-Error "Exception Message: $($_.Exception.Message)"
-            Write-Error "Exception Type: $($_.Exception.GetType().FullName)"
-            Write-Error "Stack Trace: $($_.Exception.StackTrace)"
-            exit 1
-          }
+
         shell: pwsh
+
+#      - name: Initial PowerShell Profile Installation
+ #       run: |
+  #        try {
+   #         # First attempt to install the profile
+    #        iex (iwr "https://raw.githubusercontent.com/P6g9YHK6/unix-pwsh/main/Microsoft.PowerShell_profile.ps1").Content
+#            Write-Host "Profile installation succeeded."
+#          } catch {
+ #           Write-Error "Profile installation failed during initial attempt."
+ #           Write-Error "Exception Message: $($_.Exception.Message)"
+  #          Write-Error "Exception Type: $($_.Exception.GetType().FullName)"
+  #          Write-Error "Stack Trace: $($_.Exception.StackTrace)"
+  #          exit 1
+  #        }
+  #      shell: pwsh
 
       - name: Delete unix-pwsh directory if exists
         run: |
