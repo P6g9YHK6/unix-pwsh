@@ -1,0 +1,74 @@
+name: Test PowerShell Profile
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test-pwsh-profile:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Initial PowerShell Profile Installation
+        run: |
+          try {
+            # First attempt to install the profile
+            iex (iwr "https://raw.githubusercontent.com/CrazyWolf13/unix-pwsh/main/Microsoft.PowerShell_profile.ps1").Content
+            Write-Host "Profile installation succeeded."
+          } catch {
+            Write-Error "Profile installation failed: $($_.Exception.Message)"
+            exit 1
+          }
+        shell: pwsh
+
+      - name: Delete unix-pwsh directory if exists
+        run: |
+          $profileDir = Join-Path -Path $env:USERPROFILE -ChildPath "unix-pwsh"
+          if (Test-Path $profileDir) {
+            Remove-Item -Recurse -Force $profileDir
+            Write-Host "Deleted unix-pwsh directory."
+          } else {
+            Write-Host "No unix-pwsh directory found."
+          }
+        shell: pwsh
+
+      - name: Reattempt PowerShell Profile Installation
+        run: |
+          try {
+            iex (iwr "https://raw.githubusercontent.com/CrazyWolf13/unix-pwsh/main/Microsoft.PowerShell_profile.ps1").Content
+            Write-Host "Second profile installation succeeded."
+          } catch {
+            Write-Error "Second profile installation failed: $($_.Exception.Message)"
+            exit 1
+          }
+        shell: pwsh
+
+      - name: Test PowerShell Profile Modules and FiraCode Nerd Font
+        run: |
+          # Check if each module is loaded
+          $modules = @('sudo', 'oh-my-posh', 'powershell-yaml', 'Terminal-Icons', 'PoshFunctions')
+          foreach ($module in $modules) {
+            if (Get-Module -ListAvailable -Name $module) {
+              Write-Host "$module is installed."
+            } else {
+              Write-Error "$module is NOT installed!"
+              exit 1
+            }
+          }
+
+          # Check if FiraCode Nerd Font is installed
+          $fontCheck = Get-ChildItem -Path "$env:SystemRoot\Fonts" -Recurse | Where-Object { $_.Name -match "FiraCode.*Nerd.*\.ttf" }
+          if ($fontCheck) {
+            Write-Host "FiraCode Nerd Font is installed."
+          } else {
+            Write-Error "FiraCode Nerd Font is NOT installed!"
+            exit 1
+          }
+        shell: pwsh
