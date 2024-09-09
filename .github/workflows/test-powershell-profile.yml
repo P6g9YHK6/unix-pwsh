@@ -15,18 +15,28 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-
+        
       - name: Initial PowerShell Profile Installation
         run: |
-          try {
-            # First attempt to install the profile
-            iex (iwr "https://raw.githubusercontent.com/CrazyWolf13/unix-pwsh/main/Microsoft.PowerShell_profile.ps1").Content
-            Write-Host "Profile installation succeeded."
-          } catch {
-            Write-Error "Profile installation failed: $($_.Exception.Message)"
-            exit 1
+          $retryCount = 0
+          $maxRetries = 3
+          while ($retryCount -lt $maxRetries) {
+            try {
+              iex (iwr "https://raw.githubusercontent.com/CrazyWolf13/unix-pwsh/main/Microsoft.PowerShell_profile.ps1").Content
+              Write-Host "Profile installation succeeded."
+              break
+            } catch {
+              Write-Warning "Profile installation failed. Retrying... ($($retryCount + 1)/$maxRetries)"
+              $retryCount++
+              if ($retryCount -eq $maxRetries) {
+                Write-Error "Profile installation failed after $maxRetries attempts."
+                exit 1
+              }
+              Start-Sleep -Seconds 5  # Wait 5 seconds before retrying
+            }
           }
         shell: pwsh
+
 
       - name: Delete unix-pwsh directory if exists
         run: |
