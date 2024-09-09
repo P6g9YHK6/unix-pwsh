@@ -7,15 +7,15 @@ $OhMyPoshConfig = "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/m
 
 # -----------------------------------------------------------------------------
 
-$targetHost = "github.com"
-$port = 443
-$timeout = 1000
 
-$connectionResult = Test-NetConnection -ComputerName $targetHost -Port $port -InformationLevel Detailed
-if ($connectionResult.TcpTestSucceeded) {
-    $canConnectToGitHub = $true
-} else {
-    $canConnectToGitHub = $false
+try {
+$response = iwr "https://github.com" -TimeoutSec 10
+Write-Host "Network connectivity is OK."
+$canConnectToGitHub = $true
+} catch {
+Write-Error "Network connectivity issue: $($_.Exception.Message)"
+$canConnectToGitHub = $false
+exit 1
 }
 
 # Define vars.
