@@ -112,8 +112,8 @@ function Test-$font {
         Set-ConfigValue -Key "${font}_installed" -Value "True"
     } else {
         Write-Host "❌ No Nerd-Fonts are installed." -ForegroundColor Red
-        $installNerdFonts = Read-Host "Do you want to install $font NerdFont? (Y/N)"
-        if ($installNerdFonts -eq 'Y' -or $installNerdFonts -eq 'y') {
+        
+        if ($yesMan -or (Read-Host "Do you want to install $font NerdFont? (Y/N)") -match '^[Yy]$') {
             Install-NerdFont
         } else {
             Write-Host "❌ NerdFonts installation skipped." -ForegroundColor Yellow
@@ -121,6 +121,7 @@ function Test-$font {
         }
     }
 }
+
 
 function Update-PowerShell {
     if (-not $global:canConnectToGitHub) {
