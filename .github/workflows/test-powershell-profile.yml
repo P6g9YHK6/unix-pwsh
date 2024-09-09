@@ -16,6 +16,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Prep - Install and Run Script
+        run: |
+          # Install the script using Install-Script cmdlet
+          Install-Script -Name winget-install -Force
+          
+          # Run the installed script
+          winget-install
+        shell: pwsh
+
       - name: Initial PowerShell Profile Installation
         run: |
           try {
