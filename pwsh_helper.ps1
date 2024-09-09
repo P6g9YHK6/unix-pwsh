@@ -98,7 +98,7 @@ function Test-ohmyposh {
     } else {
         Write-Host "❌ OhMyPosh is not installed." -ForegroundColor Red
         
-        if ($yesMan -or (Read-Host "Do you want to install Oh-My-Posh? (Y/N)") -match '^[Yy]$') {
+        if ($yesMa -or (Read-Host "Do you want to install Oh-My-Posh? (Y/N)") -match '^[Yy]$') {
             winget install JanDeDobbeleer.OhMyPosh --accept-package-agreements --accept-source-agreements
         } else {
             Write-Host "❌ Oh-My-Posh installation skipped." -ForegroundColor Yellow
