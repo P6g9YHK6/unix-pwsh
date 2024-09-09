@@ -209,7 +209,7 @@ function Initialize-Module {
         # Proceed only if the module is not installed
         if ($global:canConnectToGitHub) {
             try {
-                Install-Module -Name $moduleName -Scope CurrentUser -SkipPublisherCheck
+                Install-Module -Name $moduleName -Scope CurrentUser -SkipPublisherCheck -AllowClobber
                 Set-ConfigValue -Key "${moduleName}_installed" -Value "True"
             } catch {
                 Write-Error "❌ Failed to install module ${moduleName}: $_"
